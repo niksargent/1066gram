@@ -523,7 +523,7 @@ export function latin(text, y = 80, size = 17, w = 400) {
   const words = text.split(' ');
   const cols = [C.navy, C.green, C.red];
   const tspans = words.map((wd, i) => `<tspan fill="${cols[i % 3]}">${wd}</tspan>`).join(' ');
-  return `<text x="${w / 2}" y="${y}" text-anchor="middle" font-size="${size}" class="tcap" ${text.length > 34 ? `textLength="${w - 30}" lengthAdjust="spacingAndGlyphs"` : ''}>${tspans}</text>`;
+  return `<text x="${w / 2}" y="${y}" text-anchor="middle" font-size="${size}" class="tcap" ${text.length > 28 ? `textLength="${w - 30}" lengthAdjust="spacingAndGlyphs"` : ''}>${tspans}</text>`;
 }
 
 // A full square-ish card: 400 x 500 with borders, linen ground and a caption.
