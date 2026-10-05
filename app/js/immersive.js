@@ -53,7 +53,7 @@ const KINDS = {
       ],
       sky: '#2b2233',
       // A slow, overdramatic push in on Harold.
-      cam: (p, t) => ({ pos: [Math.sin(t * 0.3) * 0.25 * p, p * 0.5, 9.33 - p * (2.6 + Math.min(t, 20) * 0.06)], target: [0, p * 0.15, -p * 1.6] }),
+      cam: (p, t) => ({ pos: [Math.sin(t * 0.3) * 0.25 * p, -1.0 * p, 9.33 - p * (3.2 + Math.min(t, 25) * 0.05)], target: [0, -1.45 * p, -p * 1.6] }),
     };
   },
   feast: () => {
@@ -121,11 +121,12 @@ const KINDS = {
   },
 };
 
-export function createImmersive(container, kind) {
+// opts.width / opts.pixelRatio / opts.capture let the video renderer drive it frame by frame.
+export function createImmersive(container, kind, opts = {}) {
   const spec = KINDS[kind]();
-  const W = container.clientWidth || 400, H = Math.round(W * 1.25);
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'low-power' });
-  renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+  const W = opts.width || container.clientWidth || 400, H = Math.round(W * 1.25);
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: opts.capture ? 'high-performance' : 'low-power', preserveDrawingBuffer: !!opts.capture });
+  renderer.setPixelRatio(opts.pixelRatio || Math.min(2, window.devicePixelRatio || 1));
   renderer.setSize(W, H, false);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   const canvas = renderer.domElement;
@@ -284,7 +285,10 @@ export function createImmersive(container, kind) {
   function frame(now) {
     if (!running) return;
     raf = requestAnimationFrame(frame);
-    const t = (now - t0) / 1000;
+    draw((now - t0) / 1000);
+  }
+
+  function draw(t) {
     const p = ease(Math.min(1, Math.max(0, (t - 0.8) / 2.4)));
 
     hinge.rotation.x = -p * Math.PI / 2;
@@ -354,6 +358,7 @@ export function createImmersive(container, kind) {
     ready,
     start() { if (running) return; running = true; t0 = performance.now(); raf = requestAnimationFrame(frame); },
     stop() { running = false; cancelAnimationFrame(raf); },
+    renderAt(t) { draw(t); },
     dispose() {
       running = false;
       cancelAnimationFrame(raf);
