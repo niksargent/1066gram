@@ -88,9 +88,20 @@ svg { display: block; }
 .slides::-webkit-scrollbar { display: none; }
 .slide { flex: none; width: 100%; height: 100%; scroll-snap-align: start; }
 .slide svg { width: 100%; height: 100%; }
-.dots { position: absolute; left: 0; right: 0; bottom: 6px; display: flex; justify-content: center; gap: 5px; pointer-events: none; }
-.dots i { width: 6px; height: 6px; border-radius: 50%; background: #fff8; box-shadow: 0 0 0 1px #0002; }
-.dots i.on { background: var(--red); }
+.dots { position: absolute; left: 0; right: 0; bottom: 4px; display: flex; justify-content: center; gap: 2px; z-index: 2; }
+.dot { width: 16px; height: 16px; display: grid; place-items: center; }
+.dot::after { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #fff8; box-shadow: 0 0 0 1px #0002; }
+.dot.on::after { background: var(--red); }
+.cnav {
+  position: absolute; top: 50%; width: 34px; height: 34px; margin-top: -17px; z-index: 2; display: grid; place-items: center;
+  border-radius: 50%; background: rgba(251, 246, 234, .9); color: var(--navy); font: 700 22px/1 var(--ui); box-shadow: 0 2px 8px #0003;
+  transition: opacity .2s;
+}
+.cnav.prev { left: 10px; } .cnav.next { right: 10px; }
+.media.at-start .cnav.prev, .media.at-end .cnav.next { opacity: 0; pointer-events: none; }
+.cnav:focus-visible, .dot:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+@media (hover: none) { .cnav { display: none; } }
+@media (hover: hover) { .media.carousel .slides { cursor: grab; } .media.carousel .slides:active { cursor: grabbing; } }
 
 /* talking puppets */
 [data-who].speaking .head { animation: talk .22s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: 40% 95%; }

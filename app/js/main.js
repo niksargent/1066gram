@@ -43,8 +43,8 @@ function mediaHtml(post) {
   if (t === 'immersive') over += `<div class="badge3d">3D</div>`;
   if (post.score) over += `<div class="scorebug"><span>${post.score[0]}</span><b>${post.score[1]}</b><b>${post.score[2]}</b><span>${post.score[3]}</span></div>`;
   if (post.seq?.some((st) => typeof st === 'string')) over += `<div class="subs" aria-live="polite"></div><button class="sound" aria-label="Toggle sound">${ICON.sound}</button><button class="replay" aria-label="Play again">${ICON.replay}</button>`;
-  if (t === 'carousel') over += `<div class="dots">${[0, 1, 2].map((i) => `<i class="${i ? '' : 'on'}"></i>`).join('')}</div>`;
-  return `<div class="media ${t}" data-id="${post.id}">${inner}${over}<div class="burst">${ICON.heart}</div></div>`;
+  if (t === 'carousel') over += `<button class="cnav prev" aria-label="Previous slide">‹</button><button class="cnav next" aria-label="Next slide">›</button><div class="dots">${[0, 1, 2].map((i) => `<button class="dot ${i ? '' : 'on'}" data-i="${i}" aria-label="Slide ${i + 1}"></button>`).join('')}</div>`;
+  return `<div class="media ${t}${t === 'carousel' ? ' at-start' : ''}" data-id="${post.id}">${inner}${over}<div class="burst">${ICON.heart}</div></div>`;
 }
 
 function commentsHtml(post) {
@@ -154,10 +154,14 @@ function mountMedia(media) {
   } else if (r.slides) {
     ph.innerHTML = `<div class="slides">${r.slides.map((s) => `<div class="slide">${s}</div>`).join('')}</div>`;
     const sl = $('.slides', ph);
+    const n = r.slides.length;
     sl.addEventListener('scroll', () => {
       const i = Math.round(sl.scrollLeft / sl.clientWidth);
-      $$('.dots i', media).forEach((d, k) => d.classList.toggle('on', k === i));
+      $$('.dots .dot', media).forEach((d, k) => d.classList.toggle('on', k === i));
+      media.classList.toggle('at-start', i === 0);
+      media.classList.toggle('at-end', i === n - 1);
     }, { passive: true });
+    dragToSwipe(sl, media);
   }
   mounted.set(id, { frames, three: null });
   wireLatin(ph);
@@ -176,6 +180,42 @@ function unmountMedia(media) {
 const nearObs = new IntersectionObserver((entries) => {
   for (const e of entries) e.isIntersecting ? mountMedia(e.target) : unmountMedia(e.target);
 }, { rootMargin: '150% 0px' });
+
+// ---------- carousels on desktop: arrows, dots, keys and click-and-drag ----------
+function goSlide(media, i) {
+  const sl = $('.slides', media);
+  if (!sl) return;
+  const n = sl.children.length;
+  const to = Math.max(0, Math.min(n - 1, i));
+  sl.scrollTo({ left: to * sl.clientWidth, behavior: 'smooth' });
+}
+const slideIndex = (media) => { const sl = $('.slides', media); return sl ? Math.round(sl.scrollLeft / sl.clientWidth) : 0; };
+function dragToSwipe(sl, media) {
+  let x0 = 0, left0 = 0, dragging = false;
+  sl.addEventListener('pointerdown', (e) => {
+    if (e.pointerType !== 'mouse' || e.button !== 0) return;
+    dragging = true; x0 = e.clientX; left0 = sl.scrollLeft; media._dragged = false;
+    sl.style.scrollSnapType = 'none';
+    sl.setPointerCapture(e.pointerId);
+  });
+  sl.addEventListener('pointermove', (e) => {
+    if (!dragging) return;
+    const dx = e.clientX - x0;
+    if (Math.abs(dx) > 5) media._dragged = true;
+    sl.scrollLeft = left0 - dx;
+  });
+  const end = (e) => {
+    if (!dragging) return;
+    dragging = false;
+    const dx = e.clientX - x0, w = sl.clientWidth;
+    const from = Math.round(left0 / w);
+    const to = Math.abs(dx) > w * 0.15 ? from + (dx < 0 ? 1 : -1) : from;
+    sl.style.scrollSnapType = '';
+    goSlide(media, to);
+  };
+  sl.addEventListener('pointerup', end);
+  sl.addEventListener('pointercancel', end);
+}
 
 // ---------- the active post (plays sound, animates) ----------
 let active = null;
@@ -502,6 +542,8 @@ function bind() {
     if (t.matches('.acc, .av-btn')) { openProfile(t.dataset.acc); return; }
     if (t.matches('.viewall')) { t.closest('.comments').classList.add('all'); t.remove(); return; }
     if (t.matches('.cmt')) { const c = $('.comments', art); c.classList.add('all'); $('.viewall', c)?.remove(); return; }
+    if (t.matches('.cnav')) { const m = t.closest('.media'); goSlide(m, slideIndex(m) + (t.matches('.next') ? 1 : -1)); return; }
+    if (t.matches('.dot')) { goSlide(t.closest('.media'), +t.dataset.i); return; }
     if (t.matches('.like')) { like(art, !t.classList.contains('on')); return; }
     if (t.matches('.shr')) { openShare(post); return; }
     if (t.matches('.sav')) { t.classList.toggle('on'); toast(t.classList.contains('on') ? 'Saved to your chest' : 'Removed'); return; }
@@ -509,6 +551,7 @@ function bind() {
     if (t.matches('.sound')) { e.stopPropagation(); if (audio.isMuted()) audio.unlock(); else audio.setMuted(true); return; }
     if (t.matches('.replay')) { e.stopPropagation(); audio.unlock(); playSeq(t.closest('.media'), post); return; }
     if (t.matches('.media')) {
+      if (t._dragged) { t._dragged = false; return; }
       const now = Date.now();
       if (now - (t._tap || 0) < 320) { like(art, true); burst(t); }
       else if (audio.isMuted() && post?.seq) { audio.unlock(); }
@@ -527,7 +570,13 @@ function bind() {
   $('#mute').addEventListener('click', () => (audio.isMuted() ? audio.unlock() : audio.setMuted(true)));
   $('.brand').addEventListener('click', () => scrollTo({ top: 0, behavior: 'smooth' }));
   addEventListener('scroll', () => requestAnimationFrame(updateThread), { passive: true });
-  addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSheet(); });
+  addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeSheet();
+    if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && active?.classList.contains('carousel') && !e.target.closest('input')) {
+      e.preventDefault();
+      goSlide(active, slideIndex(active) + (e.key === 'ArrowRight' ? 1 : -1));
+    }
+  });
 
   // Unlock audio on the first real tap anywhere, not just the enter button.
   const firstTouch = (e) => {
