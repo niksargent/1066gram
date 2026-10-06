@@ -49,11 +49,13 @@ window.setupVideo = async (cfg) => {
   const v = $('#v');
   v.innerHTML = `
     ${band('top', 11)}
-    <div class="hook">${cfg.hook}</div>
+    <div class="series">📜 If the Bayeux Tapestry <i>was Instagram</i></div>
+    <div class="slot"><div class="s-open">${cfg.opener}</div><div class="s-hook">${cfg.hook}</div></div>
     <div class="head">${av(post.acc)}<div><b>@${esc(handleOf(post.acc, post))}</b>${crowned ? CROWN : ''}<small>${esc(post.loc || '')}${post.date ? ' · ' + esc(post.date) : ''}</small></div></div>
     <div class="vstage"><div class="media ${post.type}" data-id="${post.id}"><div class="ph">${ph}</div>${over}</div></div>
     <div class="cm-stack">${cfg.comments.map(([a, t]) => `<div class="bubble">${av(a)}<div><b>@${esc(handleOf(a, post))}</b><p>${esc(t)}</p></div></div>`).join('')}</div>
     <div class="mark">1066gram</div>
+    <div class="opener">${cfg.opener}</div>
     ${band('bottom', 29)}
     <div class="end">
       <div class="cast">${['harold', 'william', 'odo', 'comet'].map(av).join('')}</div>
@@ -108,11 +110,17 @@ window.renderAt = (t) => {
   document.getAnimations().forEach((a) => { a.pause(); a.currentTime = ms; });
   if (three) three.renderAt(t);
 
-  // Hook pops in; comments slide in one by one; then the end card.
-  const hook = $('.hook');
-  const hp = easeOut(clamp(t / 0.35));
-  hook.style.transform = `scale(${0.92 + 0.08 * hp})`;
-  hook.style.opacity = hp;
+  // The big opener is up from the first frame, then flies into the top slot,
+  // which later hands over from the opener to the hook.
+  const op = $('.opener');
+  const out = easeOut(clamp((t - 2.5) / 0.4));
+  op.style.opacity = 1 - out;
+  op.style.transform = `translateY(${-out * 420}px) scale(${(1 + 0.03 * Math.sin(Math.min(t, 2.5) * 3)) * (1 - 0.45 * out)})`;
+  const so = $('.s-open'), sh = $('.s-hook');
+  const inOpen = clamp((t - 2.7) / 0.3), toHook = clamp((t - 8) / 0.4);
+  so.style.opacity = inOpen * (1 - toHook);
+  sh.style.opacity = toHook;
+  sh.style.transform = `translateY(${(1 - toHook) * 16}px)`;
   $$('.bubble').forEach((b, i) => {
     const k = easeOut(clamp((t - cfg.commentsAt - i * 1.1) / 0.35));
     b.style.opacity = k;

@@ -15,15 +15,20 @@
       background: repeating-linear-gradient(0deg, #0000 0 5px, #d9caa766 5px 6px), repeating-linear-gradient(90deg, #0000 0 5px, #fff3 5px 6px), #eadfc4; }
     .band { position: absolute; left: 0; width: 1080px; height: 124px; }
     .band.top { top: 0; } .band.bottom { bottom: 0; }
-    .hook { position: absolute; left: 70px; right: 70px; top: 158px; font: 900 60px/1.1 var(--ui); color: #283149; text-wrap: balance; letter-spacing: -.5px; }
-    .hook em { font-style: normal; color: #b4513a; }
-    .head { position: absolute; left: 90px; top: 398px; display: flex; align-items: center; gap: 18px; }
+    .series { position: absolute; left: 70px; top: 142px; padding: 10px 20px; border-radius: 40px; background: #283149; color: #f4ecd8; font: 800 32px/1 var(--ui); letter-spacing: .2px; }
+    .series i { font-style: normal; color: #d3a24a; }
+    .slot { position: absolute; left: 70px; right: 70px; top: 214px; height: 186px; }
+    .slot div { position: absolute; inset: 0; font: 900 54px/1.1 var(--ui); color: #283149; text-wrap: balance; letter-spacing: -.5px; }
+    .slot em, .opener em { font-style: normal; color: #b4513a; }
+    .opener { position: absolute; left: 70px; right: 70px; top: 700px; padding: 46px 44px; border-radius: 34px; background: #fffaf0; box-shadow: 0 24px 60px #0006, 0 0 0 6px #b4513a;
+      font: 900 88px/1.05 var(--ui); color: #283149; text-align: center; text-wrap: balance; letter-spacing: -1px; z-index: 5; transform-origin: 50% 0; }
+    .head { position: absolute; left: 90px; top: 412px; display: flex; align-items: center; gap: 18px; }
     .head .av { width: 76px; height: 76px; padding: 4px; border-radius: 50%; background: linear-gradient(135deg, #d3a24a, #b4513a); }
     .head .av svg { border: 3px solid #fbf6ea; }
     .head b { font: 800 36px/1.1 var(--ui); }
     .head .crown { width: 30px; height: 24px; margin-left: 8px; }
     .head small { display: block; font: 500 28px/1.2 var(--ui); color: #7a7260; }
-    .vstage { position: absolute; left: 90px; top: 500px; width: 400px; height: 500px; transform: scale(2.25); transform-origin: 0 0; box-shadow: 0 2px 6px #0003; }
+    .vstage { position: absolute; left: 90px; top: 512px; width: 400px; height: 500px; transform: scale(2.25); transform-origin: 0 0; box-shadow: 0 2px 6px #0003; }
     .vstage .media { width: 400px; height: 500px; aspect-ratio: auto; }
     .cm-stack { position: absolute; left: 70px; right: 150px; top: 1080px; display: flex; flex-direction: column; gap: 18px; }
     .bubble { display: flex; gap: 16px; align-items: flex-start; padding: 18px 22px; border-radius: 26px; background: #fffaf0; box-shadow: 0 10px 30px #0003; opacity: 0; }

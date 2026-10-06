@@ -44,7 +44,7 @@ function chapterOf(id) {
 
 // Mirrors the feed's sequence player, but on a fixed clock.
 function timeline(post) {
-  const LEAD = 0.9;
+  const LEAD = 0.4;
   let t = LEAD;
   const lines = [], frames = [], audio = [];
   const seq = post.seq || [];
@@ -108,7 +108,7 @@ try {
     const page = await browser.newPage({ viewport: { width: 1080, height: 1920 }, deviceScaleFactor: 1 });
     page.on('pageerror', (e) => console.log('  page error:', e.message));
     await page.goto(`http://localhost:${PORT}/render.html`, { waitUntil: 'networkidle' });
-    await page.evaluate((cfg) => window.setupVideo(cfg), { id: pick.id, hook: pick.hook, comments, lines: tl.lines, frames: tl.frames, commentsAt: tl.commentsAt, endAt: tl.endAt });
+    await page.evaluate((cfg) => window.setupVideo(cfg), { id: pick.id, hook: pick.hook, opener: pick.opener, comments, lines: tl.lines, frames: tl.frames, commentsAt: tl.commentsAt, endAt: tl.endAt });
 
     const silent = `${base}.video.mp4`;
     const ff = spawn(FFMPEG, ['-y', '-hide_banner', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(FPS), '-c:v', 'mjpeg', '-i', '-',
@@ -138,7 +138,7 @@ try {
 // Captions to paste into TikTok / X / LinkedIn.
 const md = ['# 1066gram — video captions', '', `Post in this order. Put **${LINK}** in your TikTok bio; on X and LinkedIn paste it as the last line.`, ''];
 PICKS.forEach((p, i) => {
-  md.push(`## ${String(i + 1).padStart(2, '0')} · ${p.slug.replace(/-/g, ' ')}`, '', `**On screen:** ${p.hook.replace(/<\/?em>/g, '')}`, '',
+  md.push(`## ${String(i + 1).padStart(2, '0')} · ${p.slug.replace(/-/g, ' ')}`, '', `**Opener:** ${p.opener.replace(/<\/?em>/g, '')}`, '', `**Then:** ${p.hook.replace(/<\/?em>/g, '')}`, '',
     '**Caption:**', '', '```', `${p.caption}`, '', `Full feed: link in bio`, '', p.tags, '```', '',
     '**X / LinkedIn:**', '', '```', `${p.caption}`, '', `The whole Bayeux Tapestry as a social feed: ${LINK}`, '```', '');
 });
