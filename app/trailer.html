@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <title>1066gram trailer</title>
+  <meta name="robots" content="noindex">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=IM+Fell+English+SC&family=Inter:wght@500;600;700;800&family=Uncial+Antiqua&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/app.css">
+  <script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js" } }</script>
+  <style>
+    /* A 1920x1080 cinema frame, drawn frame by frame by tools/render-trailer.mjs. */
+    html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: #000; }
+    *, *::before, *::after { transition: none !important; }
+    #t { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: #000; }
+    .layer { position: absolute; inset: 0; opacity: 0; }
+    #shake { position: absolute; inset: -20px; }
+    /* the long stitched strip */
+    #strip { position: absolute; left: 0; top: 0; display: flex; transform-origin: 0 0; will-change: transform; }
+    #strip .cell { width: 400px; height: 500px; flex: none; position: relative; }
+    #strip .cell svg { width: 400px; height: 500px; display: block; }
+    #stripwrap { background: #1a160f; }
+    #stripwrap .dim { position: absolute; inset: 0; background: #000; }
+    /* title cards */
+    #card { background: #000; display: grid; place-items: center; }
+    #card .txt { font: 700 118px/1.05 'Cinzel', Georgia, serif; color: #f4ead2; letter-spacing: .14em; text-align: center; text-shadow: 0 0 28px #ffdc9a55, 0 0 2px #fff8; padding: 0 120px; }
+    #card .txt.small { font-size: 92px; }
+    /* 3D */
+    #three canvas { position: absolute; left: 20px; top: 20px; width: 1920px !important; height: 1080px !important; opacity: 1 !important; }
+    /* phone reveal */
+    #phone { background: radial-gradient(ellipse at 50% 55%, #3a2f1f 0%, #120f0a 70%); }
+    #phone .bgstrip { position: absolute; inset: 0; filter: blur(14px) brightness(.35); }
+    #phone .device { position: absolute; left: 50%; top: 50%; width: 410px; height: 860px; margin: -430px 0 0 -205px; border-radius: 58px; background: #0d0d0d;
+      box-shadow: 0 0 0 3px #3b3b3b, 0 0 0 9px #161616, 0 40px 120px #000c, 0 0 160px #d3a24a33; padding: 14px; transform-origin: 50% 50%; }
+    #phone .screen { width: 382px; height: 832px; border-radius: 46px; overflow: hidden; background: #fbf6ea; position: relative; }
+    #phone iframe { width: 390px; height: 844px; border: 0; transform: scale(.98); transform-origin: 0 0; }
+    #phone .notch { position: absolute; left: 50%; top: 22px; width: 110px; height: 30px; margin-left: -55px; border-radius: 20px; background: #0d0d0d; z-index: 3; }
+    .ping { position: absolute; display: flex; align-items: center; gap: 14px; padding: 16px 22px; border-radius: 22px; background: #fffaf0; box-shadow: 0 18px 50px #000a; font: 600 26px/1.25 'Inter', sans-serif; color: #23211b; max-width: 520px; opacity: 0; }
+    .ping .av { width: 54px; height: 54px; flex: none; }
+    .ping b { color: #283149; }
+    /* end title */
+    #title { background: radial-gradient(ellipse at 50% 45%, #2b2418 0%, #0b0907 70%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; }
+    #title .bgstrip { position: absolute; inset: 0; filter: blur(3px) brightness(.22) sepia(.3); }
+    #title .logo { position: relative; font: 230px/1 'Uncial Antiqua', serif; color: #d2593f; text-shadow: 0 0 40px #d3a24a66, 0 6px 0 #6e2a1c; }
+    #title .tag { position: relative; font: 64px/1.1 'IM Fell English SC', serif; color: #f1e4c4; }
+    #title .url { position: relative; margin-top: 26px; padding: 18px 40px; border-radius: 16px; border: 2px solid #d3a24a; font: 700 48px/1 'Inter', sans-serif; color: #f4ead2; letter-spacing: .02em; }
+    /* cinema finish */
+    .bar { position: absolute; left: 0; right: 0; height: 138px; background: #000; z-index: 20; }
+    .bar.top { top: 0; } .bar.bot { bottom: 0; }
+    #subs { position: absolute; left: 0; right: 0; bottom: 34px; text-align: center; z-index: 21; font: 600 38px/1.25 'Inter', sans-serif; color: #fff; text-shadow: 0 2px 8px #000; opacity: 0; padding: 0 200px; }
+    #vignette { position: absolute; inset: 0; z-index: 19; background: radial-gradient(ellipse at 50% 50%, #0000 55%, #000a 100%); pointer-events: none; }
+    #grain { position: absolute; inset: 0; z-index: 22; width: 1920px; height: 1080px; opacity: .09; mix-blend-mode: overlay; image-rendering: pixelated; }
+    #flash { position: absolute; inset: 0; z-index: 23; background: #fff6e0; opacity: 0; }
+    #fade { position: absolute; inset: 0; z-index: 24; background: #000; opacity: 0; }
+  </style>
+</head>
+<body>
+  <div id="t">
+    <div id="shake">
+      <div class="layer" id="stripwrap"><div id="strip"></div><div class="dim"></div></div>
+      <div class="layer" id="three"></div>
+      <div class="layer" id="card"><div class="txt"></div></div>
+      <div class="layer" id="phone"></div>
+      <div class="layer" id="title"></div>
+    </div>
+    <div id="vignette"></div>
+    <div class="bar top"></div><div class="bar bot"></div>
+    <div id="subs"></div>
+    <canvas id="grain" width="480" height="270"></canvas>
+    <div id="flash"></div>
+    <div id="fade"></div>
+  </div>
+  <script type="module" src="js/trailer.js"></script>
+</body>
+</html>

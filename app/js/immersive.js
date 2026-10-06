@@ -124,7 +124,8 @@ const KINDS = {
 // opts.width / opts.pixelRatio / opts.capture let the video renderer drive it frame by frame.
 export function createImmersive(container, kind, opts = {}) {
   const spec = KINDS[kind]();
-  const W = opts.width || container.clientWidth || 400, H = Math.round(W * 1.25);
+  const aspect = opts.aspect || 0.8;
+  const W = opts.width || container.clientWidth || 400, H = Math.round(W / aspect);
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: opts.capture ? 'high-performance' : 'low-power', preserveDrawingBuffer: !!opts.capture });
   renderer.setPixelRatio(opts.pixelRatio || Math.min(2, window.devicePixelRatio || 1));
   renderer.setSize(W, H, false);
@@ -136,8 +137,9 @@ export function createImmersive(container, kind, opts = {}) {
   const linen = new THREE.Color(C.linen), sky = new THREE.Color(spec.sky);
   scene.background = linen.clone();
   scene.fog = new THREE.Fog(linen.clone(), 10, 26);
-  const camera = new THREE.PerspectiveCamera(30, 0.8, 0.1, 100);
-  const D = 2.5 / Math.tan(THREE.MathUtils.degToRad(15));
+  const fov = opts.fov || 30;
+  const camera = new THREE.PerspectiveCamera(fov, aspect, 0.1, 100);
+  const D = 2.5 / Math.tan(THREE.MathUtils.degToRad(fov / 2));
   const disposables = [];
 
   const tex = (c) => { const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; disposables.push(t); return t; };
@@ -224,7 +226,8 @@ export function createImmersive(container, kind, opts = {}) {
     if (spec.comet) {
       const cc = await rasterize(spec.comet, 880, 560, { font: false });
       cometMesh = new THREE.Mesh(plane(5.5, 3.5), mat(tex(cc), { opacity: 0, transparent: true, alphaTest: 0.05, depthWrite: false }));
-      cometMesh.position.set(1.4, 3.1, -9);
+      cometMesh.position.set(1.4, aspect > 1 ? 1.75 : 3.1, -9);
+      if (aspect > 1) cometMesh.scale.setScalar(1.25);
       scene.add(cometMesh);
       const n = 380, pos = new Float32Array(n * 3);
       for (let i = 0; i < n; i++) { pos[i * 3] = (Math.random() - 0.5) * 40; pos[i * 3 + 1] = Math.random() * 14 - 1; pos[i * 3 + 2] = -10 - Math.random() * 10; }
@@ -349,11 +352,19 @@ export function createImmersive(container, kind, opts = {}) {
       camera.position.set(drift, p * 1.6, D - p * 0.8);
       target.set(drift * 0.3, -p * 0.2, -p * 3);
     }
+    // Optional reframing (used by the widescreen trailer): pull in towards the target and shift it.
+    if (api.view) {
+      const v = api.view;
+      target.y += (v.ty ?? 0) * p;
+      camera.position.lerp(target, (1 - (v.dist ?? 1)) * p);
+      camera.position.y += (v.cy ?? 0) * p;
+    }
     camera.lookAt(target);
     renderer.render(scene, camera);
   }
 
-  return {
+  const api = {
+    view: null,
     canvas,
     ready,
     start() { if (running) return; running = true; t0 = performance.now(); raf = requestAnimationFrame(frame); },
@@ -368,4 +379,5 @@ export function createImmersive(container, kind, opts = {}) {
       canvas.remove();
     },
   };
+  return api;
 }
