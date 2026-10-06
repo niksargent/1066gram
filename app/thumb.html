@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <title>1066gram thumbnail</title>
+  <meta name="robots" content="noindex">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@800;900&family=Uncial+Antiqua&display=swap" rel="stylesheet">
+  <style>
+    /* YouTube thumbnail, 1280x720. Rendered by tools/render-thumb.mjs. */
+    html, body { margin: 0; width: 1280px; height: 720px; overflow: hidden; }
+    #th { position: relative; width: 1280px; height: 720px; overflow: hidden;
+      background: radial-gradient(ellipse at 30% 60%, #f3e6c4 0%, #e2cf9f 38%, #8a6a3c 78%, #3a2a16 100%); }
+    #th svg.art { position: absolute; inset: 0; }
+    .vs { position: absolute; left: 330px; right: 0; top: 70px; text-align: center; font: 900 196px/1 'Inter', sans-serif; letter-spacing: -6px;
+      -webkit-text-stroke: 14px #1b1610; paint-order: stroke fill; filter: drop-shadow(0 10px 0 #1b1610) drop-shadow(0 18px 30px #0008); }
+    .vs .one { color: #ffd34d; }
+    .vs .v { font-size: 96px; color: #fffaf0; letter-spacing: 0; margin: 0 22px; vertical-align: 38px; }
+    .vs .many { color: #e0482f; }
+    .tag { position: absolute; left: 26px; top: 24px; display: flex; align-items: center; gap: 14px; padding: 10px 20px 12px; border-radius: 14px;
+      background: #1b1610e6; box-shadow: 0 8px 24px #0007; }
+    .tag .logo { font: 44px/1 'Uncial Antiqua', serif; color: #e0482f; }
+    .tag .ot { font: 900 26px/1 'Inter', sans-serif; color: #fffaf0; letter-spacing: 2px; }
+  </style>
+</head>
+<body>
+  <div id="th"></div>
+  <script type="module">
+    import { figure, sh, wob, ln, C, STYLE, defs, seed, ground } from './js/art.js';
+    seed(35);
+    const G = 640;
+    // 35 Normans in ranks, all drawing their bows at one man.
+    let normans = '';
+    const ranks = [[8, 0.78, 520, 790], [9, 0.92, 580, 745], [9, 1.08, 645, 700], [9, 1.26, 720, 655]];
+    let n = 0;
+    for (const [count, s, y, x0] of ranks) {
+      for (let i = 0; i < count && n < 35; i++, n++) {
+        const x = x0 + i * (1280 - x0 + 40) / count;
+        normans += figure({ who: 'norman', helmet: (i + count) % 3 ? 'blue' : 'ochre', x, y, s, dir: -1, armF: 90, propF: { t: 'bow', a: 0 }, armB: -30, still: true });
+      }
+    }
+    // The one English archer: bigger, closer, and visibly sweating.
+    const hero = figure({ who: 'archer', x: 270, y: G + 70, s: 3.0, armF: 92, propF: { t: 'bow', a: 0 }, armB: -30, still: true });
+    const sweat = [[318, 262, 2.0], [372, 300, 1.6], [262, 300, 1.4], [400, 360, 1.2]].map(([x, y, k]) =>
+      `<path d="M${x},${y} q${-7 * k},${14 * k} 0,${20 * k} q${7 * k},${-6 * k} 0,${-20 * k}Z" fill="#7fc4ef" stroke="#1b3a55" stroke-width="3"/>`).join('');
+    // Thread-like arrow streaks flying at him.
+    const arrows = [...Array(7)].map((_, i) => `<g transform="translate(${620 + i * 28},${250 + i * 34}) rotate(${-98 - i * 3})">${ln('M0,0L0,-70', '#1b1610', 3)}${ln('M-6,-62L0,-74L6,-62', '#1b1610', 3)}</g>`).join('');
+    document.getElementById('th').innerHTML =
+      `<svg class="art" viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg">${STYLE}${defs()}
+        ${sh(wob([[0, 650], [400, 640], [800, 648], [1280, 636], [1280, 720], [0, 720]], { j: 3 }), 'sage')}
+        ${normans}${arrows}${hero}${sweat}
+      </svg>
+      <div class="vs"><span class="one">1</span><span class="v">vs</span><span class="many">35</span></div>
+      <div class="tag"><span class="logo">1066gram</span><span class="ot">OFFICIAL TRAILER</span></div>`;
+    window.__ready = document.fonts.ready.then(() => true);
+  </script>
+</body>
+</html>
